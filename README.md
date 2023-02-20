@@ -5,6 +5,9 @@ This Repository belongs to Winnie Chow (20016039) at Manchester Metropolitan Uni
 A List of patch 'codes' and what they are in reference to:
 - **patch_0.N** : Changes made to the ReadMe File
 - **patch_1.N** : Changes made to main code
+  - **patch_1.1** : Login Page
+  - **patch_1.2** : Register Page
+  - **patch_1.3** : Profile Page
 
 ## Required Resources 
 - Node.js
@@ -23,4 +26,8 @@ Due to the gitignore file, some expo dependacies have not been uploaded to this 
 Library to validate an email address
 ```
 npm install email-validator
+```
+Library to generate profile pictures
+```
+npm i react-native-profile-picture
 ```
