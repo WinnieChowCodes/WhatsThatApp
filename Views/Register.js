@@ -2,7 +2,7 @@ import React, { Component, StrictMode } from 'react';
 import { Text, TextInput, View, Button, Alert, StyleSheet } from 'react-native';
 import * as EmailValidator from 'email-validator';
 
-class App extends Component {
+class Register extends Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -127,9 +127,10 @@ class App extends Component {
         <br />
         <Button title="Register" onPress={this.register}></Button>
         <Text style={this.styles.error}>{this.state.error}</Text>
+        <Button title="Back" onPress={()=> this.props.navigation.goBack(null)}></Button>
       </View>
     );
   }
 }
 
-export default App
+export default Register
