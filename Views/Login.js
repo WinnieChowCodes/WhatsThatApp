@@ -2,7 +2,7 @@ import React, { Component, StrictMode } from 'react';
 import { Text, TextInput, View, Button, Alert, StyleSheet } from 'react-native';
 import * as EmailValidator from 'email-validator';
 
-class App extends Component {
+class Login extends Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -70,6 +70,7 @@ class App extends Component {
       //API code goes here
       this.setState({error:""})
       alert("Email: " + this.state.email + " Password: " + this.state.password);
+      this.props.navigation.navigate('Register');
     }
   }
 
@@ -99,13 +100,13 @@ class App extends Component {
         <Text style={this.styles.error}>{this.state.emailError}</Text>
         <TextInput style={this.styles.formFields} placeholder='password' onChangeText={this.passwordHandler} value={this.state.password} secureTextEntry="true" />
         <Text style={this.styles.error}>{this.state.passwordError}</Text>
-        <Button title="Login" onPress={this.login}></Button>
+        <Button title="Login" onPress={()=> this.props.navigation.navigate('Home')}></Button>
         <Text style={this.styles.error}>{this.state.error}</Text>
 
-        <Button title="Join Us"></Button>
+        <Button title="Join Us" onPress={()=> this.props.navigation.navigate('Register')}></Button>
       </View>
     );
   }
 }
 
-export default App
+export default Login
