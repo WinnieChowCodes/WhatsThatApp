@@ -2,7 +2,7 @@ import React, { Component, StrictMode } from 'react';
 import { Text, TextInput, View, Button, StyleSheet, Image } from 'react-native';
 import ProfilePicture from 'react-native-profile-picture';
 import { TouchableOpacity } from 'react-native-web';
-class App extends Component {
+class Profile extends Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -53,14 +53,6 @@ class App extends Component {
       <View>
         {/*Loading user profile picture using library*/}
         <div style={this.styles.profileContainer}>
-          <ProfilePicture
-            isPicture={true}
-            requirePicture="https://static.vecteezy.com/system/resources/thumbnails/002/534/006/small/social-media-chatting-online-blank-profile-picture-head-and-body-icon-people-standing-icon-grey-background-free-vector.jpg"
-            shape='circle'
-            width={150}
-            height={150}
-            style={{ alignSelf: 'center' }}
-          />
           <Text style={this.styles.usernameText}>{this.state.username}</Text>
           <div>
             <TouchableOpacity style={this.styles.buttonStyle}>
@@ -80,4 +72,4 @@ class App extends Component {
   }
 }
 
-export default App
+export default Profile
