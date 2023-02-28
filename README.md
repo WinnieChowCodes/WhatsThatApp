@@ -8,6 +8,13 @@ A List of patch 'codes' and what they are in reference to:
   - **patch_1.1** : Login Page
   - **patch_1.2** : Register Page
   - **patch_1.3** : Profile Page
+  - **patch_1.4** : Users Page
+  - **patch_1.5** : Contacts Page
+  - **patch_1.6** : Blocked Page
+  - **patch_1.7** : ChatList Page
+  - **patch_1.8** : Chat Page
+  - **patch_1.9** : Drafts Page
+
 
 ## Required Resources 
 - Node.js
@@ -30,4 +37,13 @@ npm install email-validator
 Library to generate profile pictures
 ```
 npm i react-native-profile-picture
+```
+
+Libraries related to navigation
+```
+npm install @react-navigation/native
+expo install react-native-screens react-native-safe-area-context
+npm install @react-navigation/native-stack
+npm install @react-navigation/bottom-tabs
+npm install @react-navigation/drawer
 ```
