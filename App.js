@@ -12,8 +12,11 @@ import LoginPage from './Views/Login';
 import RegisterPage from './Views/Register';
 import ProfilePage from './Views/Profile';
 import UsersPage from './Views/Users';
+import ContactsPage from './Views/Contacts';
+import BlockedPage from './Views/Blocked';
+import ChatListPage from './Views/ChatList';
 
-const Stack = createNativeStackNavigator();
+const AuthStack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
 function TabNavigation() {
@@ -21,6 +24,9 @@ function TabNavigation() {
     <Tab.Navigator>
       <Tab.Screen name="Profile" component={ProfilePage} />
       <Tab.Screen name="Users" component={UsersPage} />
+      <Tab.Screen name="Chats" component={ChatListPage} />
+      <Tab.Screen name="Contact" component={ContactsPage} />
+      <Tab.Screen name="Blocked" component={BlockedPage} />
     </Tab.Navigator>
   );
 }
@@ -29,15 +35,13 @@ class App extends Component {
 
   render() {
     return (
-      <View>
-        <NavigationContainer>
-          <Stack.Navigator initialRouteName="Login">
-            <Stack.Screen name="Login" component={LoginPage} />
-            <Stack.Screen name="Register" component={RegisterPage} />
-            <Stack.Screen name="Home" component={TabNavigation} />
-          </Stack.Navigator>
-        </NavigationContainer>
-      </View>
+      <NavigationContainer>
+        <AuthStack.Navigator initialRouteName="Login" screenOptions={{headerShown: false}}>
+          <AuthStack.Screen name="Login" component={LoginPage} />
+          <AuthStack.Screen name="Register" component={RegisterPage} />
+          <AuthStack.Screen name="Home" component={TabNavigation} />
+        </AuthStack.Navigator>
+      </NavigationContainer>
     );
   }
 }
