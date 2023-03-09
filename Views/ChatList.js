@@ -1,6 +1,7 @@
 import React, { Component, StrictMode } from 'react';
 import { Text, TextInput, View, Button, StyleSheet, Image } from 'react-native';
 import { ActivityIndicator, FlatList, Touchable, TouchableOpacity } from 'react-native-web';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 class ChatList extends Component {
   constructor(props) {
     super(props);
@@ -16,18 +17,17 @@ class ChatList extends Component {
     this.getData();
   };
 
-  getData() {
+  async getData() {
     return fetch("http://localhost:3333/api/1.0.0/chat", {
       method: 'get',
       headers: {
-        'x-authorization': '3313ab47c37376f7e67d5e2af486483a'
+        'x-authorization': await AsyncStorage.getItem("SessionToken")
       }
     })
-      .then((response) => response.json())
       .then((responseJson) => {
         this.setState({
           isLoading: false,
-          chatsListData: responseJson
+          chatsListData: responseJson.json()
         })
       })
       .catch((error) => {
@@ -49,21 +49,23 @@ class ChatList extends Component {
     chatTitle: {
       fontSize: 20,
       fontWeight: 'bold'
+    },
+    buttonStyle:{
+      backgroundColor: '#3a75b5',
+      padding: 10,
+      width: 100
     }
+
   })
+
   render() {
-    if (this.state.isLoading) {
-      return (
-        <View>
-          <ActivityIndicator />
-        </View>
-      );
-    }
     if(this.state.chatsListData.length ==0){
       return(
         <View>
-           <Text style={this.styles.header}>Chats</Text>
-           <Text>No Current Blocked Users!</Text>
+           <Text>No Current Chats! Start a new chat</Text>
+           <TouchableOpacity style={this.styles.buttonStyle}>
+            <Text>New Chat</Text>
+           </TouchableOpacity>
         </View>
       )
     }
