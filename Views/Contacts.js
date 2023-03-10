@@ -1,6 +1,7 @@
 import React, { Component, StrictMode } from 'react';
 import { Text, TextInput, View, Button, StyleSheet, Image } from 'react-native';
 import { ActivityIndicator, FlatList, Touchable, TouchableOpacity } from 'react-native-web';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 class Contacts extends Component {
   constructor(props) {
     super(props);
@@ -9,6 +10,9 @@ class Contacts extends Component {
       query: "",
       isLoading: true,
       contactsListData: [],
+      deleteContactID: 0,
+      blockContactID: 0,
+      errorMessage: ""
     }
   }
 
@@ -16,14 +20,14 @@ class Contacts extends Component {
     this.getData();
   };
 
-  getData() {
+  async getData() {
     return fetch("http://localhost:3333/api/1.0.0/contacts", {
       method: 'get',
       headers: {
-        'x-authorization': '3313ab47c37376f7e67d5e2af486483a'
+        'x-authorization': await AsyncStorage.getItem("SessionToken")
       }
     })
-      .then((response) => response.json())
+    .then((response) => response.json())
       .then((responseJson) => {
         this.setState({
           isLoading: false,
@@ -33,6 +37,64 @@ class Contacts extends Component {
       .catch((error) => {
         console.log(error);
       });
+  }
+
+  async deleteContact(){
+    return fetch("http://localhost:3333/api/1.0.0/user/"+this.state.deleteContactID+"/contact", {
+      method: 'delete',
+      headers: {
+        'x-authorization': await AsyncStorage.getItem("SessionToken")
+      }
+    })
+      .then(() => {
+        this.setState({
+          isLoading: false,
+          errorMessage: "Contact Removed"
+        })
+        console.log("Contact Removed")
+        this.getData();
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  }
+
+  async blockContact(){
+    return fetch("http://localhost:3333/api/1.0.0/user/"+this.state.blockContactID+"/block", {
+      method: 'post',
+      headers: {
+        'x-authorization': await AsyncStorage.getItem("SessionToken")
+      }
+    })
+      .then(() => {
+        this.setState({
+          isLoading: false,
+          errorMessage: "Contact Blocked"
+        })
+        console.log("Contact Blocked")
+        this.getData();
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  }
+
+  deleteContactHandler = (ID) => {
+    this.setState({
+      isLoading: true,
+      deleteContactID: ID
+    }, () => {
+      this.deleteContact();
+    });
+  }
+
+  blockContactHandler = (ID) => {
+    this.setState({
+      isLoading: true,
+      blockContactID: ID
+    }, () => {
+      this.blockContact();
+    });
   }
 
   styles = StyleSheet.create({
@@ -75,7 +137,6 @@ class Contacts extends Component {
     if(this.state.contactsListData.length ==0){
       return(
         <View>
-           <Text style={this.styles.header}>Contacts</Text>
            <Text>No Current Contacts!</Text>
         </View>
       )
@@ -83,7 +144,7 @@ class Contacts extends Component {
     else {
       return (
         <View>
-          <Text style={this.styles.header}>Contacts</Text>
+          <Text>{this.state.errorMessage}</Text>
           <FlatList
             data={this.state.contactsListData}
             renderItem={({ item }) => (
@@ -94,11 +155,11 @@ class Contacts extends Component {
                   <Text>{item.email}</Text>
                 </View>
                 <View>
-                  <TouchableOpacity style={this.styles.userButton}>
+                  <TouchableOpacity style={this.styles.userButton} onPress={()=>this.deleteContactHandler(item.user_id)}>
                     <Text style={this.styles.buttonText}>Remove Contact</Text>
                   </TouchableOpacity>
                   <br/>
-                  <TouchableOpacity style={this.styles.userButton}>
+                  <TouchableOpacity style={this.styles.userButton} onPress={()=>this.blockContactHandler(item.user_id)}>
                     <Text style={this.styles.buttonText}>Block User</Text>
                   </TouchableOpacity>
                 </View>
