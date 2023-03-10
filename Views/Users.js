@@ -1,7 +1,9 @@
 import React, { Component, StrictMode } from 'react';
 import { Text, TextInput, View, Button, StyleSheet, Image } from 'react-native';
 import { ActivityIndicator, FlatList, Touchable, TouchableOpacity } from 'react-native-web';
-class App extends Component {
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+class Users extends Component {
   constructor(props) {
     super(props);
 
@@ -9,18 +11,21 @@ class App extends Component {
       query: "",
       isLoading: true,
       usersListData: [],
+      contactID: 0,
+      contactMessage: ""
     }
+    this.addContact = this.addContact.bind(this)
   }
 
   componentDidMount() {
     this.getData();
   };
 
-  getData() {
-    return fetch(this.searchQueryURLFormatter(), {
+  async getData() {
+    return fetch("http://localhost:3333/api/1.0.0/search?q=" + this.state.query, {
       method: 'get',
       headers: {
-        'x-authorization': '3313ab47c37376f7e67d5e2af486483a'
+        'x-authorization': await AsyncStorage.getItem("SessionToken")
       }
     })
       .then((response) => response.json())
@@ -35,25 +40,55 @@ class App extends Component {
       });
   }
 
-  //Formats the URL
-  searchQueryURLFormatter=()=>{
-    return("http://localhost:3333/api/1.0.0/search?q="+this.state.query)
+  //Performs a POST request to add a new contact
+  async addContact() {
+    return fetch("http://localhost:3333/api/1.0.0/user/" + this.state.contactID + "/contact", {
+      method: 'post',
+      headers: {
+        'x-authorization': await AsyncStorage.getItem("SessionToken")
+      }
+    })
+      .then(() => {
+        this.setState({
+          isLoading: false,
+          contactMessage: "User added to Contacts"
+        })
+        return(<Text style={this.styles.contactSuccessMessage}>{this.state.contactMessage}</Text>);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  }
+
+  addContactHandler = (ID) => {
+    this.setState({
+      isLoading: true,
+      contactID: ID
+    }, () => {
+      this.addContact();
+    });
+    
+    //this.addContact();
   }
 
   //Stores the value of the query in the relevant state
-  searchHandler=(newQuery)=>{
-    this.setState({query: newQuery});
+  searchHandler = (newQuery) => {
+    this.setState({ query: newQuery });
     console.log(this.state.query);
   }
 
   //Performs a search of users
-  searchUsers=()=>{
-    this.setState({isLoading:false});
+  searchUsers = () => {
+    this.setState({ isLoading: false });
     this.getData();
   }
 
   styles = StyleSheet.create({
-    header:{
+    ViewContainer: {
+      display: 'flex',
+      flex: 1,
+    },
+    header: {
       backgroundColor: '#3a75b5',
       padding: 10,
       color: 'white',
@@ -74,11 +109,18 @@ class App extends Component {
       fontWeight: 'bold',
       textAlign: 'center'
     },
-    userContainer:{
+    userContainer: {
       display: 'flex',
       justifyContent: "flex-start",
       flexDirection: 'row',
       flexWrap: 'wrap'
+    },
+    contactSuccessMessage: {
+      backgroundColor: '#3ae07a',
+      padding: 10,
+      color: 'white',
+      fontWeight: 'bold',
+      textAlign: 'center'
     }
   })
   render() {
@@ -91,21 +133,20 @@ class App extends Component {
     }
     else {
       return (
-        <View>
-          <Text style={this.styles.header}>Users</Text>
+        <View style={this.styles.ViewContainer}>
           <TextInput placeholder='Search...' style={this.styles.search} onChangeText={this.searchHandler} value={this.state.query}></TextInput>
           <Button title="Search" onPress={this.searchUsers}></Button>
           <FlatList
             data={this.state.usersListData}
             renderItem={({ item }) => (
               <View>
-                <br/>
+                <br />
                 <View>
                   <Text>{item.given_name} {item.family_name}</Text>
                   <Text>{item.email}</Text>
                 </View>
                 <View>
-                  <TouchableOpacity style={this.styles.userButton}>
+                  <TouchableOpacity style={this.styles.userButton} onPress={()=>this.addContactHandler(item.user_id)}>
                     <Text style={this.styles.buttonText}>Add To Contacts</Text>
                   </TouchableOpacity>
                 </View>
@@ -118,4 +159,4 @@ class App extends Component {
   }
 }
 
-export default App
+export default Users
