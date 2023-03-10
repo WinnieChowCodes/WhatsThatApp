@@ -15,14 +15,26 @@ import UsersPage from './Views/Users';
 import ContactsPage from './Views/Contacts';
 import BlockedPage from './Views/Blocked';
 import ChatListPage from './Views/ChatList';
+import EditProfilePage from './Views/EditProfile';
 
 const AuthStack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
+const ProfileStack = createNativeStackNavigator();
+
+
+function ProfStack(){
+  return (
+  <ProfileStack.Navigator initialRouteName='ProfileMain' screenOptions={{headerShown: false}}>
+    <ProfileStack.Screen name="ProfileMain" component={ProfilePage}/>
+    <ProfileStack.Screen name="EditProfile" component={EditProfilePage}/>
+  </ProfileStack.Navigator>
+  );
+}
 
 function TabNavigation() {
   return (
     <Tab.Navigator>
-      <Tab.Screen name="Profile" component={ProfilePage} />
+      <Tab.Screen name="Profile" component={ProfStack} />
       <Tab.Screen name="Users" component={UsersPage} />
       <Tab.Screen name="Chats" component={ChatListPage} />
       <Tab.Screen name="Contact" component={ContactsPage} />
@@ -30,6 +42,8 @@ function TabNavigation() {
     </Tab.Navigator>
   );
 }
+
+
 
 class App extends Component {
 
