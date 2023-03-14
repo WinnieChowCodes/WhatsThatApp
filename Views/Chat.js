@@ -10,7 +10,10 @@ class Chat extends Component {
     this.state = {
       isLoading: true,
       chatsListData: [],
+      message: ""
     }
+
+    this.sendMessage = this.sendMessage.bind(this)
   }
 
   componentDidMount() {
@@ -18,10 +21,10 @@ class Chat extends Component {
   };
 
   async getData() {
-    return fetch("http://localhost:3333/api/1.0.0/chat/1", {
+    return fetch("http://localhost:3333/api/1.0.0/chat/"+await AsyncStorage.getItem("chatID"), {
       method: 'get',
       headers: {
-        'x-authorization': await AsyncStorage.getItem("SessionToken")
+        'X-Authorization': await AsyncStorage.getItem("SessionToken")
       }
     })
       .then((response) => response.json())
@@ -36,8 +39,54 @@ class Chat extends Component {
       });
   }
 
+  async sendMessage(){
+    let data={
+      message: this.state.message
+    };
+    return fetch("http://localhost:3333/api/1.0.0/chat/"+await AsyncStorage.getItem("chatID")+"/message", {
+      method: 'post',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-authorization': await AsyncStorage.getItem("SessionToken")
+      },
+      body: JSON.stringify(data)
+    })
+      .then((response) => {
+        this.getData();
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  }  
+
+  messageHandler = (newMessage) => {
+    this.setState({message:newMessage});
+  }
+
   styles = StyleSheet.create({
-    header:{
+    container:{
+      display: 'flex',
+      justifyContent: 'flex-start',
+      flexDirection: 'column',
+      flex: 1
+    },
+    messageSendContainer:{
+      display: 'flex',
+      justifyContent: "space-between",
+      flexDirection: 'row',
+      padding: 5,
+    },
+    messageInput:{
+      backgroundColor: '#ede7e6',
+      padding: 10,
+      width: '100%',
+    },
+    messageSend:{
+      backgroundColor: '#3a75b5',
+      padding: 10,
+      width: 100
+    },
+    header: {
       backgroundColor: '#3a75b5',
       padding: 10,
       color: 'white',
@@ -53,37 +102,36 @@ class Chat extends Component {
     }
   })
   render() {
-    if (this.state.isLoading) {
-      return (
-        <View>
-          <ActivityIndicator />
-        </View>
-      );
-    }
-    if(this.state.chatsListData.length ==0){
-      return(
-        <View>
-            <Text style={this.styles.header}>{this.state.chatsListData.name}</Text>
-           <Text>No Current Messages, start the conversation!</Text>
-        </View>
-      )
-    }
-    else {
-      return (
-        <View>
-          <Text style={this.styles.header}>{this.state.chatsListData.name}</Text>
-          <FlatList
-            data={this.state.chatsListData}
-            renderItem={({ item }) => (
-              <View>
-                <Text>{item.messages[0].message}</Text>
-                <br/>
-              </View>
-            )}
-            keyExtractor={({ chat_id }, index) => chat_id} />
-        </View>
-      )
-    }
+    return (
+      <View style={this.styles.container}>
+        <Text style={this.styles.header}>{this.state.chatsListData.name}</Text>
+        <TouchableOpacity 
+        onPress={()=> this.props.navigation.navigate('EditChat',{
+          chatsListData: this.state.chatsListData
+        })}>
+          <Text>Edit Chat</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={()=> this.props.navigation.navigate('EditChatUsers')}>
+          <Text>Edit Users</Text>
+        </TouchableOpacity>
+        <FlatList
+          data={this.state.chatsListData.messages}
+          renderItem={({ item }) => (
+            <View style={this.styles.chatStyle}>
+              <Text>{item.author.first_name} {item.author.last_name}</Text>
+              <Text>{item.message}</Text>
+              <Text>{item.timestamp}</Text> 
+            </View>
+          )}
+          keyExtractor={({ chat_id }, index) => chat_id} />
+          <View style={this.styles.messageSendContainer}>
+          <TextInput placeholder='Message...' style={this.styles.messageInput} onChangeText={this.messageHandler} value={this.state.message}></TextInput>
+          <TouchableOpacity style={this.styles.messageSend} onPress={this.sendMessage}>
+            <Text>Submit</Text>
+          </TouchableOpacity>
+          </View>
+      </View>
+    )
   }
 }
 
