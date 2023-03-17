@@ -14,6 +14,10 @@ A List of patch 'codes' and what they are in reference to:
   - **patch_1.7** : ChatList Page
   - **patch_1.8** : Chat Page
   - **patch_1.9** : Drafts Page
+  - **patch_1.10** : EditProfile Page
+  - **patch_1.11** : EditChat Page
+  - **patch_1.12** : EditChatUsers Page
+  - **patch_1.13** : EditMessage Page
 
 
 ## Required Resources 
