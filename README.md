@@ -1,6 +1,10 @@
 # WhatsThatApp
 This Repository belongs to Winnie Chow (20016039) at Manchester Metropolitan University for the Final Year Mobile Application Development Unit 2023. (6G6Z1104_2223_9Z6) 
 
+## Important Info
+Due to the gitignore file, some expo dependacies have not been uploaded to this repositary. 
+This Project uses the Airbnb style guide.
+
 ## Patches Reference
 A List of patch 'codes' and what they are in reference to:
 - **patch_0.N** : Changes made to the ReadMe File
@@ -30,9 +34,6 @@ A List of patch 'codes' and what they are in reference to:
 - React Native
 - Expo/Expo GO
 
-## Important Info
-Due to the gitignore file, some expo dependacies have not been uploaded to this repositary. 
-
 ### Required Libraries
 Library to validate an email address
 ```
@@ -50,4 +51,9 @@ expo install react-native-screens react-native-safe-area-context
 npm install @react-navigation/native-stack
 npm install @react-navigation/bottom-tabs
 npm install @react-navigation/drawer
+```
+Libraries related to Eslint and Linters
+```
+npm install eslint --save-dev
+npm i eslint-config-airbnb
 ```
