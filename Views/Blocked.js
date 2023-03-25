@@ -1,3 +1,5 @@
+/* eslint-disable react/prop-types */
+/* eslint-disable react/destructuring-assignment */
 /* eslint-disable react/no-unused-state */
 import React, { Component } from 'react';
 import { Text, View, StyleSheet } from 'react-native';
@@ -46,12 +48,15 @@ class Blocked extends Component {
     };
   }
 
+  // Executes as soon as the component renders
   componentDidMount() {
-    this.getData();
+    this.unsubscribe = this.props.navigation.addListener('focus', () => {
+      this.getData();
+    });
   }
 
-  componentDidUpdate() {
-    this.getData();
+  componentWillUnmount() {
+    this.unsubscribe();
   }
 
   async getData() {
