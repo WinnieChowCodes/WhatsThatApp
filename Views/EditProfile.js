@@ -65,12 +65,6 @@ class EditProfile extends Component {
   }
 
   componentDidMount() {
-    this.getUserID();
-  }
-
-  async getUserID() {
-    this.setState({ userID: await AsyncStorage.getItem('userID') });
-    this.setState({ sessionToken: await AsyncStorage.getItem('sessionToken') });
     this.getData();
   }
 
