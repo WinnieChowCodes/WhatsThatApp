@@ -1,5 +1,6 @@
 /* eslint-disable linebreak-style */
 /* eslint-disable react/prefer-stateless-function */
+/* eslint-disable import/no-named-as-default-member */
 /* eslint-disable react/no-unstable-nested-components */
 import * as React from 'react';
 import { Component } from 'react';
@@ -20,6 +21,7 @@ import EditChatPage from './Views/EditChat';
 import EditChatUsers from './Views/EditChatUsers';
 import EditMessagePage from './Views/EditMessage';
 import DraftsPage from './Views/Drafts';
+import UploadPhotoPage from './Views/UploadPhoto';
 
 const AuthStack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -32,6 +34,7 @@ function ProfStack() {
     <ProfileStack.Navigator initialRouteName="ProfileMain" screenOptions={{ headerShown: false }}>
       <ProfileStack.Screen name="ProfileMain" component={ProfilePage} />
       <ProfileStack.Screen name="EditProfile" component={EditProfilePage} />
+      <ProfileStack.Screen name="UploadPhoto" component={UploadPhotoPage} />
     </ProfileStack.Navigator>
   );
 }
