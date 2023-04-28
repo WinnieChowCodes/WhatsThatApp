@@ -93,37 +93,32 @@ class Login extends Component {
       email: item.email,
       password: item.password,
     };
-    fetch('http://localhost:3333/api/1.0.0/login', {
+    return fetch('http://localhost:3333/api/1.0.0/login', {
       method: 'post',
       headers: {
-        'content-type': 'application/json',
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify(data),
     })
-      .then((response) => response.json())
-      .then((responseJson) => {
-        this.setState({
-          responseData: responseJson,
-        });
-        if (responseJson.status === 400) {
-          this.setState({ error: 'Incorrect Email/Password' });
+      .then((response) => {
+        if (response.status === 200) {
+          return response.json();
+        }
+        if (response.status === 400) {
+          throw new Error('Email/Password Incorrect');
         } else {
-          this.setState({ error: 'Logged in' });
-          this.props.navigation.navigate('Home');
+          throw new Error('Server Error! Please try again later!');
         }
       })
-      .then(async () => {
-        try {
+      .then(async (responseJson) => {
+        this.setState({ responseData: responseJson }, async () => {
           await AsyncStorage.setItem('userID', this.state.responseData.id);
           await AsyncStorage.setItem('SessionToken', this.state.responseData.token);
-
-          // navigate user to main page
-        } catch {
-          throw new Error('Something went wrong!');
-        }
+        });
+        this.props.navigation.navigate('Home');
       })
-      .catch((error) => {
-        console.log(error);
+      .catch((err) => {
+        this.setState({ error: err });
       });
   }
 
