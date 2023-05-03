@@ -1,3 +1,6 @@
+/* eslint-disable consistent-return */
+/* eslint-disable react/prop-types */
+/* eslint-disable react/destructuring-assignment */
 /* eslint-disable react/no-unused-state */
 import React, { Component } from 'react';
 import { Text, View, StyleSheet } from 'react-native';
@@ -46,12 +49,15 @@ class Blocked extends Component {
     };
   }
 
+  // Executes as soon as the component renders
   componentDidMount() {
-    this.getData();
+    this.unsubscribe = this.props.navigation.addListener('focus', () => {
+      this.getData();
+    });
   }
 
-  componentDidUpdate() {
-    this.getData();
+  componentWillUnmount() {
+    this.unsubscribe();
   }
 
   async getData() {
@@ -61,7 +67,17 @@ class Blocked extends Component {
         'x-authorization': await AsyncStorage.getItem('SessionToken'),
       },
     })
-      .then((response) => response.json())
+      .then(async (response) => {
+        if (response.status === 200) {
+          return response.json();
+        }
+        if (response.status === 401) {
+          // User is unauthorised - return to login screen
+          this.props.navigation.navigate('Login');
+        } else {
+          throw new Error('Server Error! Please try again later!');
+        }
+      })
       .then((responseJson) => {
         this.setState({
           isLoading: false,
