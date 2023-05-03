@@ -1,14 +1,19 @@
+/* eslint-disable no-return-assign */
+/* eslint-disable react/no-access-state-in-setstate */
 /* eslint-disable react/prop-types */
 /* eslint-disable react/destructuring-assignment */
 /* eslint-disable react/no-unused-state */
 import React, { Component } from 'react';
 import {
-  Text, TextInput, View, Button, StyleSheet,
+  Text, TextInput, View, StyleSheet,
 } from 'react-native';
 import {
   ActivityIndicator, FlatList, TouchableOpacity,
 } from 'react-native-web';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import { ListItem } from '@rneui/themed';
+import { Avatar } from '@rneui/base';
 
 class Users extends Component {
   styles = StyleSheet.create({
@@ -26,6 +31,12 @@ class Users extends Component {
     search: {
       placeholderTextColor: 'gray',
       backgroundColor: '#e8e5e3',
+      width: '100vw',
+    },
+    searchContainer: {
+      display: 'flex',
+      flexDirection: 'row',
+      padding: 5,
     },
     userButton: {
       backgroundColor: '#3a75b5',
@@ -61,6 +72,8 @@ class Users extends Component {
       usersListData: [],
       contactID: 0,
       contactMessage: '',
+      error: '',
+      pageIndex: 0,
     };
     this.addContact = this.addContact.bind(this);
   }
@@ -77,21 +90,41 @@ class Users extends Component {
   }
 
   async getData() {
-    return fetch(`http://localhost:3333/api/1.0.0/search?q=${this.state.query}`, {
+    return fetch(`http://localhost:3333/api/1.0.0/search?q=${this.state.query}&limit=5&offset=${this.state.pageIndex}`, {
       method: 'get',
       headers: {
         'x-authorization': await AsyncStorage.getItem('SessionToken'),
       },
     })
-      .then((response) => response.json())
+      .then((response) => {
+        if (response.status === 200) {
+          return response.json();
+        }
+        if (response.status === 400) {
+          const err = 'Something Went Wrong! Please check your fields!';
+          throw err;
+        }
+        if (response.status === 401) {
+          // User is unauthorised - return to login screen
+          this.props.navigation.navigate('Login');
+        }
+        if (response.status === 404) {
+          const err = '404 not found';
+          throw err;
+        } else {
+          const err = 'Server Error! Please try again later!';
+          throw err;
+        }
+      })
+
       .then((responseJson) => {
         this.setState({
           isLoading: false,
           usersListData: responseJson,
         });
       })
-      .catch((error) => {
-        console.log(error);
+      .catch((err) => {
+        this.setState({ error: err });
       });
   }
 
@@ -106,15 +139,24 @@ class Users extends Component {
 
   // Stores the value of the query in the relevant state
   searchHandler = (newQuery) => {
-    const state = this;
     this.setState({ query: newQuery });
-    console.log(state.query);
   };
 
   // Performs a search of users
   searchUsers = () => {
-    this.setState({ isLoading: false });
+    // this.setState({ isLoading: false });
     this.getData();
+  };
+
+  // loads the next page of users
+  loadNextPage = () => {
+    const nextIndex = this.state.pageIndex + 5;
+    this.setState({ pageIndex: nextIndex }, () => this.getData());
+  };
+
+  loadPreviousPage = () => {
+    const nextIndex = this.state.pageIndex - 5;
+    this.setState({ pageIndex: nextIndex }, () => this.getData());
   };
 
   // Performs a POST request to add a new contact
@@ -125,6 +167,30 @@ class Users extends Component {
         'x-authorization': await AsyncStorage.getItem('SessionToken'),
       },
     })
+      .then((response) => {
+        if (response.status === 200) {
+          return;
+        }
+        if (response.status === 400) {
+          const err = 'You cannot add yourself as a contact';
+          throw err;
+        }
+        if (response.status === 401) {
+          // User is unauthorised - return to login screen
+          this.props.navigation.navigate('Login');
+        }
+        if (response.status === 403) {
+          const err = 'You do not have the correct permissions to perform this action!';
+          throw err;
+        }
+        if (response.status === 404) {
+          const err = '404 not found';
+          throw err;
+        } else {
+          const err = 'Server Error! Please try again later!';
+          throw err;
+        }
+      })
       .then(() => {
         this.setState({
           isLoading: false,
@@ -132,8 +198,8 @@ class Users extends Component {
         });
         return (<Text style={this.styles.contactSuccessMessage}>{this.state.contactMessage}</Text>);
       })
-      .catch((error) => {
-        console.log(error);
+      .catch((err) => {
+        this.setState({ isLoading: false, error: err });
       });
   }
 
@@ -149,33 +215,48 @@ class Users extends Component {
 
     return (
       <View style={this.styles.ViewContainer}>
-        <TextInput placeholder="Search..." style={this.styles.search} onChangeText={this.searchHandler} value={state.query} />
-        <Button title="Search" onPress={this.searchUsers} />
+        <Text>{this.state.error}</Text>
+        <View style={this.styles.searchContainer}>
+          <TextInput placeholder="Search..." style={this.styles.search} onChangeText={this.searchHandler} value={state.query} />
+          <TouchableOpacity onPress={this.searchUsers}>
+            <Ionicons name="search-outline" size="large" />
+          </TouchableOpacity>
+        </View>
         <FlatList
           data={state.usersListData}
           renderItem={({ item }) => (
-            <View style={this.styles.userContainer}>
-              <br />
-              <View>
-                <Text>
+            <ListItem bottomDivider>
+              <Avatar
+                rounded
+                source={{ uri: '../Images/default.jpeg' }}
+              />
+              <ListItem.Content>
+                <ListItem.Title>
                   {item.given_name}
                   {' '}
                   {item.family_name}
-                </Text>
-                <Text>{item.email}</Text>
-              </View>
+                </ListItem.Title>
+                <ListItem.Subtitle>{item.email}</ListItem.Subtitle>
+              </ListItem.Content>
               <View>
                 <TouchableOpacity
-                  style={this.styles.userButton}
                   onPress={() => this.addContactHandler(item.user_id)}
                 >
-                  <Text style={this.styles.buttonText}>Add To Contacts</Text>
+                  <Ionicons name="person-add-outline" size="large" />
                 </TouchableOpacity>
               </View>
-            </View>
+            </ListItem>
           )}
           keyExtractor={({ userId }) => userId}
         />
+        <View style={{ display: 'flex', justifyContent: 'center', flexDirection: 'row' }}>
+          <TouchableOpacity onPress={this.loadPreviousPage}>
+            <Ionicons name="arrow-back-outline" size="large" style={{ fontSize: 32 }} />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={this.loadNextPage}>
+            <Ionicons name="arrow-forward-outline" size="large" style={{ fontSize: 32 }} />
+          </TouchableOpacity>
+        </View>
       </View>
     );
   }
