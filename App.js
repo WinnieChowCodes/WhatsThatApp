@@ -22,6 +22,7 @@ import EditChatUsers from './Views/EditChatUsers';
 import EditMessagePage from './Views/EditMessage';
 import DraftsPage from './Views/Drafts';
 import UploadPhotoPage from './Views/UploadPhoto';
+import AddDraftsPage from './Views/AddDraft';
 
 const AuthStack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -48,6 +49,7 @@ function ChatsStackFunc() {
       <ChatsStack.Screen name="EditChatUsers" component={EditChatUsers} />
       <ChatsStack.Screen name="EditMessage" component={EditMessagePage} />
       <ChatsStack.Screen name="Drafts" component={DraftsPage} />
+      <ChatsStack.Screen name="AddDraft" component={AddDraftsPage} />
     </ChatsStack.Navigator>
   );
 }

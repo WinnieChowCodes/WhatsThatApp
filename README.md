@@ -1,6 +1,10 @@
 # WhatsThatApp
 This Repository belongs to Winnie Chow (20016039) at Manchester Metropolitan University for the Final Year Mobile Application Development Unit 2023. (6G6Z1104_2223_9Z6) 
 
+## Important Info
+Due to the gitignore file, some expo dependacies have not been uploaded to this repositary. 
+ - This project uses the Airbnb guide for code styling
+
 ## Patches Reference
 A List of patch 'codes' and what they are in reference to:
 - **patch_0.N** : Changes made to the ReadMe File
@@ -29,9 +33,6 @@ A List of patch 'codes' and what they are in reference to:
 - Swagger
 - React Native
 - Expo/Expo GO
-
-## Important Info
-Due to the gitignore file, some expo dependacies have not been uploaded to this repositary. 
 
 ### Required Libraries
 Library to validate an email address
