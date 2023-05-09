@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 /* eslint-disable react/destructuring-assignment */
 /* eslint-disable react/no-unused-state */
 import React, { Component } from 'react';
@@ -62,14 +63,30 @@ class EditChat extends Component {
         'X-Authorization': await AsyncStorage.getItem('SessionToken'),
       },
     })
-      .then((response) => response.json())
+      .then((response) => {
+        if (response.status === 200) {
+          return response.json();
+        }
+        if (response.status === 401) {
+          // User is unauthorised - return to login screen
+          this.props.navigation.navigate('Login');
+        }
+        if (response.status === 403) {
+          throw new Error('You do not have the correct permission to perform this action');
+        }
+        if (response.status === 404) {
+          throw new Error('404 Not Found');
+        } else {
+          throw new Error('Server Error! Please try again later!');
+        }
+      })
       .then((responseJson) => {
         this.setState({
           newChatName: responseJson.name,
         });
       })
-      .catch((error) => {
-        console.log(error);
+      .catch((err) => {
+        this.setState({ error: err });
       });
   }
 
@@ -89,10 +106,33 @@ class EditChat extends Component {
       },
       body: JSON.stringify(toPatch),
     })
+      .then((response) => {
+        if (response.status === 200) {
+          return;
+        }
+        if (response.status === 400) {
+          throw new Error('Something went wrong - please check your fields');
+        }
+        if (response.status === 401) {
+          // User is unauthorised - return to login screen
+          this.props.navigation.navigate('Login');
+        }
+        if (response.status === 403) {
+          throw new Error('You do not have the correct permission to perform this action');
+        }
+        if (response.status === 404) {
+          throw new Error('404 Not Found');
+        } else {
+          throw new Error('Server Error! Please try again later!');
+        }
+      })
       .then(() => {
         this.setState({
           error: 'Chat Name Successfully Changed!',
         });
+      })
+      .catch((err) => {
+        this.setState({ error: err });
       });
   }
 
