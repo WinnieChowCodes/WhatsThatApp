@@ -50,8 +50,8 @@ class Login extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      email: 'AdminTest@email.com',
-      password: 'AdminTest@123',
+      email: '',
+      password: '',
       error: '', // Stores the appropriate error
       responseData: [],
     };
@@ -63,6 +63,8 @@ class Login extends Component {
   async componentDidMount() {
     await AsyncStorage.removeItem('SessionToken');
     await AsyncStorage.removeItem('userID');
+    await AsyncStorage.setItem('drafts', '[]');
+    await AsyncStorage.setItem('lastDraftID', 0);
   }
 
   emailHandler = (email) => {
@@ -78,7 +80,6 @@ class Login extends Component {
     const item = this.state;
     // Resets the error state whenever we submit the form
     this.setState({ error: '' });
-    console.log(item.email);
     // Validation
     if (!(item.email && item.password)) {
       this.setState({ error: 'All Fields must be filled' });
@@ -105,9 +106,11 @@ class Login extends Component {
           return response.json();
         }
         if (response.status === 400) {
-          throw new Error('Email/Password Incorrect');
+          const err = 'Incorrect email/Password provided';
+          throw err;
         } else {
-          throw new Error('Server Error! Please try again later!');
+          const err = 'Server Error! Please try again later!';
+          throw err;
         }
       })
       .then(async (responseJson) => {
