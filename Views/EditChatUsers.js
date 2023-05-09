@@ -1,3 +1,5 @@
+/* eslint-disable react/prop-types */
+/* eslint-disable consistent-return */
 /* eslint-disable react/destructuring-assignment */
 /* eslint-disable react/no-unused-state */
 import React, { Component } from 'react';
@@ -46,6 +48,7 @@ class EditChatUsers extends Component {
       chatsListData: [],
       contactsListData: [],
       userID: 0,
+      error: '',
     };
   }
 
@@ -61,14 +64,29 @@ class EditChatUsers extends Component {
         'X-Authorization': await AsyncStorage.getItem('SessionToken'),
       },
     })
-      .then((response) => response.json())
+      .then((response) => {
+        if (response.status === 200) {
+          return response.json();
+        }
+        if (response.status === 401) {
+          // User is unauthorised - return to login screen
+          this.props.navigation.navigate('Login');
+        }
+        if (response.status === 403) {
+          const err = 'You do not have the correct privilages to perform this action!';
+          throw err;
+        } else {
+          const err = 'Server Error! Please try again later!';
+          throw err;
+        }
+      })
       .then((responseJson) => {
         this.setState({
           chatsListData: responseJson,
         });
       })
-      .catch((error) => {
-        console.log(error);
+      .catch((err) => {
+        this.setState({ error: err });
       });
   }
 
@@ -79,14 +97,30 @@ class EditChatUsers extends Component {
         'x-authorization': await AsyncStorage.getItem('SessionToken'),
       },
     })
-      .then((response) => response.json())
+      .then((response) => {
+        if (response.status === 200) {
+          return response.json();
+        }
+        if (response.status === 401) {
+          // User is unauthorised - return to login screen
+          this.props.navigation.navigate('Login');
+        }
+        if (response.status === 403) {
+          const err = 'You do not have the correct privilages to perform this action!';
+          throw err;
+        } else {
+          const err = 'Server Error! Please try again later!';
+          throw err;
+        }
+      })
       .then((responseJson) => {
         this.setState({
+          isLoading: false,
           contactsListData: responseJson,
         });
       })
       .catch((error) => {
-        console.log(error);
+        this.setState({ errorMessage: error });
       });
   }
 
@@ -113,12 +147,36 @@ class EditChatUsers extends Component {
         'x-authorization': await AsyncStorage.getItem('SessionToken'),
       },
     })
+      .then((response) => {
+        if (response.status === 200) {
+          return;
+        }
+        if (response.status === 400) {
+          const err = 'Something went wrong, please try again later';
+          throw err;
+        }
+        if (response.status === 401) {
+          // User is unauthorised - return to login screen
+          this.props.navigation.navigate('Login');
+        }
+        if (response.status === 403) {
+          const err = 'You do not have the correct permission to perform this action';
+          throw err;
+        }
+        if (response.status === 404) {
+          const err = '404 Not Found';
+          throw err;
+        } else {
+          const err = 'Server Error! Please try again later!';
+          throw err;
+        }
+      })
       .then(() => {
         this.getChatData();
         this.getContactsData();
       })
-      .catch((error) => {
-        console.log(error);
+      .catch((err) => {
+        this.setState({ error: err });
       });
   }
 
@@ -129,12 +187,36 @@ class EditChatUsers extends Component {
         'x-authorization': await AsyncStorage.getItem('SessionToken'),
       },
     })
+      .then((response) => {
+        if (response.status === 200) {
+          return;
+        }
+        if (response.status === 400) {
+          const err = 'Something went wrong, please try again later';
+          throw err;
+        }
+        if (response.status === 401) {
+          // User is unauthorised - return to login screen
+          this.props.navigation.navigate('Login');
+        }
+        if (response.status === 403) {
+          const err = 'You do not have the correct permission to perform this action';
+          throw err;
+        }
+        if (response.status === 404) {
+          const err = '404 Not Found';
+          throw err;
+        } else {
+          const err = 'Server Error! Please try again later!';
+          throw err;
+        }
+      })
       .then(() => {
         this.getChatData();
         this.getContactsData();
       })
-      .catch((error) => {
-        console.log(error);
+      .catch((err) => {
+        this.setState({ error: err });
       });
   }
 

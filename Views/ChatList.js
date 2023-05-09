@@ -1,8 +1,16 @@
-import React, { Component, StrictMode } from 'react';
-import { Text, TextInput, View, Button, StyleSheet, Image, Modal } from 'react-native';
-import { ActivityIndicator, FlatList, Touchable, TouchableOpacity } from 'react-native-web';
+/* eslint-disable class-methods-use-this */
+/* eslint-disable react/prop-types */
+/* eslint-disable react/destructuring-assignment */
+import React, { Component } from 'react';
+import {
+  Text, View,
+} from 'react-native';
+import {
+  FlatList, TouchableOpacity,
+} from 'react-native-web';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
+import { ListItem } from '@rneui/themed';
+import { ListItemContent } from '@rneui/base/dist/ListItem/ListItem.Content';
 import ModalUtil from './utils/Modal';
 
 class ChatList extends Component {
@@ -10,102 +18,117 @@ class ChatList extends Component {
     super(props);
 
     this.state = {
-      query: "",
-      isLoading: true,
       chatsListData: [],
-      newChatName: "",
-      modalVisible: false
-    }
+      error: '',
+    };
   }
 
+  // Executes as soon as the component renders
   async componentDidMount() {
-    this.getData();
-    await AsyncStorage.removeItem("chatID");
-  };
+    this.unsubscribe = this.props.navigation.addListener('focus', async () => {
+      this.getData();
+      await AsyncStorage.setItem('chatID', '');
+    });
+  }
+
+  componentWillUnmount() {
+    this.unsubscribe();
+  }
 
   async getData() {
-    return fetch("http://localhost:3333/api/1.0.0/chat", {
+    return fetch('http://localhost:3333/api/1.0.0/chat', {
       method: 'get',
       headers: {
-        'x-authorization': await AsyncStorage.getItem("SessionToken")
-      }
-    }) 
-    .then((response) => response.json())
+        'x-authorization': await AsyncStorage.getItem('SessionToken'),
+      },
+    })
+      .then((response) => {
+        if (response.status === 200) {
+          return response.json();
+        }
+        if (response.status === 401) {
+          // User is unauthorised - return to login screen
+          this.props.navigation.navigate('Login');
+        }
+        if (response.status === 403) {
+          const err = 'You do not have the correct privilages to perform this action!';
+          throw err;
+        } else {
+          const err = 'Server Error! Please try again later!';
+          throw err;
+        }
+      })
       .then((responseJson) => {
         this.setState({
-          isLoading: false,
-          chatsListData: responseJson
-        })
+          chatsListData: responseJson,
+        });
       })
-      .catch((error) => {
-        console.log(error);
+      .catch((err) => {
+        this.setState({ error: err });
       });
   }
 
   async getSingleChatHandler(chatID) {
-    try{
-      await AsyncStorage.setItem("chatID", chatID)
-      this.props.navigation.navigate('Chat')
-
-    }catch{
-      throw "Something went wrong!"
+    try {
+      await AsyncStorage.setItem('chatID', chatID);
+      this.props.navigation.navigate('Chat');
+    } catch {
+      return 'Something went wrong!';
     }
+    return null;
   }
 
-  styles = StyleSheet.create({
-    header:{
-      backgroundColor: '#3a75b5',
-      padding: 10,
-      color: 'white',
-      fontWeight: 'bold',
-      fontSize: 20
-    },
-    chatStyle: {
-      backgroundColor: '#d7dce0',
-      margin: 10
-    },
-    chatTitle: {
-      fontSize: 20,
-      fontWeight: 'bold'
-    },
-    buttonStyle:{
-      backgroundColor: '#3a75b5',
-      padding: 10,
-      width: 100
+  determineLastMessage = (lastMessage) => {
+    if (lastMessage.message === undefined) {
+      return 'No Messages!';
     }
 
-  })
+    return `${lastMessage.author.first_name}: ${lastMessage.message}`;
+  };
 
   render() {
-    if (this.state.chatsListData.length == 0) {
+    if (this.state.chatsListData.length === 0) {
       return (
         <View>
           <Text>No Current Chats! Start a new chat</Text>
-          <ModalUtil/>
+          <ModalUtil />
         </View>
-      )
+      );
     }
-    else {
-      return (
-        <View>
-          <FlatList
-            data={this.state.chatsListData}
-            renderItem={({ item }) => (
-              <View>
-                <br />
-                <TouchableOpacity style={this.styles.chatStyle} onPress={() => this.getSingleChatHandler(item.chat_id)}>
-                  <Text style={this.styles.chatTitle}>{item.name}</Text>
-                  <Text>Created By: {item.creator.first_name}</Text>
-                  <Text>Last Message: </Text>
-                </TouchableOpacity>
-              </View>
-            )}
-            keyExtractor={({ user_id }, index) => user_id} />
-            <ModalUtil/>
-        </View>
-      )
-    }
+
+    return (
+      <>
+        <ModalUtil />
+        <Text>{this.state.error}</Text>
+        <FlatList
+          data={this.state.chatsListData}
+          renderItem={({ item }) => (
+            <View>
+              <TouchableOpacity
+                onPress={() => this.getSingleChatHandler(item.chat_id)}
+              >
+                <ListItem bottomDivider>
+                  <ListItemContent>
+                    <ListItem.Title>{item.name}</ListItem.Title>
+                    <ListItem.Subtitle>
+                      Created by
+                      {' '}
+                      {item.creator.first_name}
+                    </ListItem.Subtitle>
+                    <ListItem.Subtitle>
+                      {this.determineLastMessage(item.last_message)}
+                    </ListItem.Subtitle>
+                  </ListItemContent>
+                </ListItem>
+              </TouchableOpacity>
+            </View>
+          )}
+          keyExtractor={({ userId }) => userId}
+        />
+
+      </>
+    );
   }
 }
 
-export default ChatList
+export default ChatList;

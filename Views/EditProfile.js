@@ -1,3 +1,6 @@
+/* eslint-disable react/prop-types */
+/* eslint-disable no-unused-expressions */
+/* eslint-disable no-sequences */
 /* eslint-disable react/no-access-state-in-setstate */
 /* eslint-disable react/destructuring-assignment */
 /* eslint-disable react/no-unused-state */
@@ -7,6 +10,7 @@ import {
 } from 'react-native';
 import { TouchableOpacity } from 'react-native-web';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as EmailValidator from 'email-validator';
 
 class EditProfile extends Component {
   styles = StyleSheet.create({
@@ -51,7 +55,7 @@ class EditProfile extends Component {
 
     this.state = {
       isLoading: true,
-      userListData: [],
+      userData: {},
       userID: 0,
       sessionToken: '',
       firstName: '',
@@ -76,17 +80,31 @@ class EditProfile extends Component {
         'x-authorization': await AsyncStorage.getItem('SessionToken'),
       },
     })
-      .then((response) => response.json())
+      .then((response) => {
+        if (response.status === 200) {
+          return response.json();
+        }
+        if (response.status === 401) {
+          // User is unauthorised - return to login screen
+          this.props.navigation.navigate('Login');
+        }
+        if (response.status === 404) {
+          const err = '404 not found';
+          throw err;
+        } else {
+          const err = 'Server Error! Please try again later!';
+          throw err;
+        }
+      })
       .then((responseJson) => {
         this.setState({
-          // eslint-disable-next-line react/no-unused-state
-          isLoading: false,
-          userListData: responseJson,
+          userData: responseJson,
+        }, () => {
+          this.populateForm();
         });
-        this.populateForm();
       })
-      .catch((error) => {
-        console.log(error);
+      .catch((err) => {
+        this.setState({ error: err });
       });
   }
 
@@ -101,22 +119,23 @@ class EditProfile extends Component {
 
   emailHandler = (email) => {
     this.setState({ email });
-  };
-
-  passwordHandler = (pass) => {
-    this.setState({ password: pass });
+    if (!EmailValidator.validate(this.state.email)) {
+      this.setState({ error: 'Not a valid Email' });
+    } else {
+      this.setState({ error: '' });
+    }
   };
 
   async patchData() {
     const toSend = {};
     // Compares the current state of the data to the original data
-    if (this.state.firstName !== this.state.userListData.first_name) {
+    if (this.state.firstName !== this.state.userData.first_name) {
       toSend.first_name = this.state.firstName;
     }
-    if (this.state.lastName !== this.state.userListData.last_name) {
+    if (this.state.lastName !== this.state.userData.last_name) {
       toSend.last_name = this.state.lastName;
     }
-    if (this.state.email !== this.state.userListData.email) {
+    if (this.state.email !== this.state.userData.email) {
       toSend.email = this.state.email;
     }
 
@@ -128,35 +147,61 @@ class EditProfile extends Component {
       },
       body: JSON.stringify(toSend),
     })
+      .then((response) => {
+        if (response.status === 200) {
+          return;
+        }
+        if (response.status === 400) {
+          const err = 'Something Went Wrong! Please check your fields!';
+          throw err;
+        }
+        if (response.status === 401) {
+          // User is unauthorised - return to login screen
+          this.props.navigation.navigate('Login');
+        }
+        if (response.status === 403) {
+          const err = 'You do not have the correct permissions to perform this action!';
+          throw err;
+        }
+        if (response.status === 404) {
+          const err = '404 not found';
+          throw err;
+        } else {
+          const err = 'Server Error! Please try again later!';
+          throw err;
+        }
+      })
       .then(() => {
         this.setState({
           isLoading: false,
           error: 'Data Successfully updated!',
         });
       })
-      .catch((error) => {
-        console.log(error);
+      .catch((err) => {
+        this.setState({ error: err });
       });
   }
 
   // Pre-populates the form
   populateForm() {
-    const newFirstName = this.state.userListData.first_name;
-    const newLastName = this.state.userListData.last_name;
-    const newEmail = this.state.userListData.email;
+    const newFirstName = this.state.userData.first_name;
+    const newLastName = this.state.userData.last_name;
+    const newEmail = this.state.userData.email;
     this.setState({ firstName: newFirstName });
     this.setState({ lastName: newLastName });
-    this.setState({ email: newEmail });
+    this.setState({ email: newEmail, isLoading: false });
   }
 
   render() {
+    if (this.state.isLoading) {
+      return <Text>Loading</Text>;
+    }
     return (
       <View style={this.styles.container}>
         <Text style={this.styles.title}>Edit Profile Details</Text>
         <TextInput style={this.styles.formFields} placeholder="First Name..." onChangeText={this.firstNameHandler} value={this.state.firstName} />
         <TextInput style={this.styles.formFields} placeholder="Last Name..." onChangeText={this.lastNameHandler} value={this.state.lastName} />
         <TextInput style={this.styles.formFields} placeholder="Email..." onChangeText={this.emailHandler} value={this.state.email} />
-        <TextInput style={this.styles.formFields} placeholder="Password" onChangeText={this.passwordHandler} value={this.state.password} secureTextEntry="true" />
         <TouchableOpacity style={this.styles.button} onPress={this.patchData}>
           <Text style={this.styles.buttonText}>Update</Text>
         </TouchableOpacity>

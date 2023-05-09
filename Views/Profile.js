@@ -49,6 +49,7 @@ class Profile extends Component {
       userID: 0,
       sessionToken: '',
       profilePhoto: [],
+      error: '',
     };
 
     this.logout = this.logout.bind(this);
@@ -77,7 +78,7 @@ class Profile extends Component {
           userListData: resJson,
         }),
         (status) => {
-          console.log(status);
+          this.setState({ error: status });
         };
       }),
     );
@@ -92,15 +93,30 @@ class Profile extends Component {
         'x-authorization': await AsyncStorage.getItem('SessionToken'),
       },
     })
-      .then((result) => result.blob())
+      .then((response) => {
+        if (response.status === 200) {
+          return response.blob();
+        }
+        if (response.status === 401) {
+          // User is unauthorised - return to login screen
+          this.props.navigation.navigate('Login');
+        }
+        if (response.status === 404) {
+          const err = '404 not found';
+          throw err;
+        } else {
+          const err = 'Server Error! Please try again later!';
+          throw err;
+        }
+      })
       .then((resBlob) => {
         this.setState({
           isLoading: false,
           profilePhoto: window.URL.createObjectURL(resBlob),
         });
       })
-      .catch((error) => {
-        console.log(error);
+      .catch((err) => {
+        this.setState({ error: err });
       });
   }
 
@@ -112,24 +128,35 @@ class Profile extends Component {
         'x-authorization': await AsyncStorage.getItem('SessionToken'),
       },
     })
+      .then((response) => {
+        if (response.status === 200) {
+          return;
+        }
+        if (response.status === 401) {
+          // User is unauthorised - return to login screen
+          this.props.navigation.navigate('Login');
+        } else {
+          const err = 'Server Error! Please try again later!';
+          throw err;
+        }
+      })
       .then(() => {
         this.setState({
           isLoading: false,
         });
       })
-    // Clear all session tokens from local storage and return the user to the login page
+      // Clear all session tokens from local storage and return the user to the login page
       .then(async () => {
         this.props.navigation.navigate('Login');
       })
-      .catch((error) => {
-        console.log(error);
+      .catch((err) => {
+        this.setState({ error: err });
       });
   }
 
   render() {
     return (
       <View style={this.styles.profileContainer}>
-        {/* Loading user profile picture using library */}
         <View>
           <Image source={{ uri: this.state.profilePhoto }} style={this.styles.imageStyle} />
           <Text style={this.styles.usernameText}>
@@ -137,14 +164,15 @@ class Profile extends Component {
             {' '}
             {this.state.userListData.last_name}
           </Text>
+          <Text>{this.state.userListData.email}</Text>
           <View>
-            <TouchableOpacity style={this.styles.buttonStyle}>
+            <TouchableOpacity style={this.styles.buttonStyle} onPress={() => this.props.navigation.navigate('UploadPhoto')}>
               <Text style={this.styles.buttonText}>Edit Profile Picture</Text>
             </TouchableOpacity>
             <TouchableOpacity style={this.styles.buttonStyle} onPress={() => this.props.navigation.navigate('EditProfile')}>
               <Text style={this.styles.buttonText}>Edit User Details</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={this.styles.buttonStyle} onPress={this.logout}>
+            <TouchableOpacity style={this.styles.buttonStyle} onPress={() => this.logout()}>
               <Text style={this.styles.buttonText}>Log Out</Text>
             </TouchableOpacity>
           </View>
