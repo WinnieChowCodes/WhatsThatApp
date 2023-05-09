@@ -1,3 +1,4 @@
+/* eslint-disable import/no-extraneous-dependencies */
 /* eslint-disable no-undef */
 /* eslint-disable radix */
 /* eslint-disable no-else-return */
@@ -25,7 +26,7 @@ class Chat extends Component {
       display: 'flex',
       justifyContent: 'space-between',
       flexDirection: 'row',
-      padding: 5,
+      padding: 10,
     },
     messageInput: {
       backgroundColor: '#ede7e6',
@@ -34,8 +35,11 @@ class Chat extends Component {
     },
     messageSend: {
       backgroundColor: '#3a75b5',
-      padding: 10,
       width: 100,
+      display: 'flex',
+      justifyContent: 'center',
+      flexDirection: 'row',
+      alignItems: 'center',
     },
     header: {
       display: 'flex',
@@ -215,6 +219,7 @@ class Chat extends Component {
 
   addToDrafts = async () => {
     await AsyncStorage.setItem('message', this.state.message);
+    this.setState({ message: '' });
     this.props.navigation.navigate('AddDraft');
   };
 
@@ -412,7 +417,7 @@ class Chat extends Component {
           </TouchableOpacity>
           <TextInput placeholder="Message..." style={this.styles.messageInput} onChangeText={this.messageHandler} value={this.state.message} />
           <TouchableOpacity style={this.styles.messageSend} onPress={this.sendMessage}>
-            <Text style={this.styles.buttonText}>Submit</Text>
+            <Ionicons name="send-outline" size="large" />
           </TouchableOpacity>
         </View>
       </View>
