@@ -3,41 +3,14 @@
 /* eslint-disable react/destructuring-assignment */
 /* eslint-disable react/no-unused-state */
 import React, { Component } from 'react';
-import { Text, View, StyleSheet } from 'react-native';
+import { Text, View } from 'react-native';
 import { ActivityIndicator, FlatList, TouchableOpacity } from 'react-native-web';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import { ListItem } from '@rneui/themed';
+import { Avatar } from '@rneui/base';
 
 class Blocked extends Component {
-  styles = StyleSheet.create({
-    header: {
-      backgroundColor: '#3a75b5',
-      padding: 10,
-      color: 'white',
-      fontWeight: 'bold',
-      fontSize: 20,
-    },
-    search: {
-      placeholderTextColor: 'gray',
-      backgroundColor: '#e8e5e3',
-    },
-    userButton: {
-      backgroundColor: '#3a75b5',
-      padding: 10,
-      width: 100,
-    },
-    buttonText: {
-      color: 'white',
-      fontWeight: 'bold',
-      textAlign: 'center',
-    },
-    userContainer: {
-      display: 'flex',
-      justifyContent: 'space-between',
-      flexDirection: 'row',
-      padding: 5,
-    },
-  });
-
   constructor(props) {
     super(props);
 
@@ -45,7 +18,7 @@ class Blocked extends Component {
       isLoading: true,
       contactsListData: [],
       blockedID: 0,
-      unblockMessage: '',
+      error: '',
     };
   }
 
@@ -75,7 +48,8 @@ class Blocked extends Component {
           // User is unauthorised - return to login screen
           this.props.navigation.navigate('Login');
         } else {
-          throw new Error('Server Error! Please try again later!');
+          const err = 'Server Error! Please try again later!';
+          throw err;
         }
       })
       .then((responseJson) => {
@@ -84,8 +58,8 @@ class Blocked extends Component {
           contactsListData: responseJson,
         });
       })
-      .catch((error) => {
-        console.log(error);
+      .catch((err) => {
+        this.setState({ error: err });
       });
   }
 
@@ -106,15 +80,31 @@ class Blocked extends Component {
         'x-authorization': await AsyncStorage.getItem('SessionToken'),
       },
     })
+      .then((response) => {
+        if (response.status === 200) {
+          return;
+        }
+        if (response.status === 401) {
+          // User is unauthorised - return to login screen
+          this.props.navigation.navigate('Login');
+        }
+        if (response.status === 403) {
+          const err = 'You do not have the correct privilages to perform this action!';
+          throw err;
+        } else {
+          const err = 'Server Error! Please try again later!';
+          throw err;
+        }
+      })
       .then(() => {
         this.setState({
           isLoading: false,
-          unblockMessage: 'Contact Unblocked',
+          error: 'Contact Unblocked',
         });
         this.getData();
       })
-      .catch((error) => {
-        console.log(error);
+      .catch((err) => {
+        this.setState({ error: err });
       });
   }
 
@@ -130,7 +120,6 @@ class Blocked extends Component {
     if (state.contactsListData.length === 0) {
       return (
         <View>
-          <Text style={this.styles.header}>Contacts</Text>
           <Text>No Current Blocked Users!</Text>
         </View>
       );
@@ -142,25 +131,27 @@ class Blocked extends Component {
         <FlatList
           data={state.contactsListData}
           renderItem={({ item }) => (
-            <View style={this.styles.userContainer}>
-              <br />
-              <View>
-                <Text>
-                  {item.first_name}
+            <ListItem bottomDivider>
+              <Avatar
+                rounded
+                source={{ uri: '../Images/default.jpeg' }}
+              />
+              <ListItem.Content>
+                <ListItem.Title>
+                  {item.given_name}
                   {' '}
-                  {item.last_name}
-                </Text>
-                <Text>{item.email}</Text>
-              </View>
+                  {item.family_name}
+                </ListItem.Title>
+                <ListItem.Subtitle>{item.email}</ListItem.Subtitle>
+              </ListItem.Content>
               <View>
                 <TouchableOpacity
-                  style={this.styles.userButton}
                   onPress={() => this.unblockContactHandler(item.user_id)}
                 >
-                  <Text style={this.styles.buttonText}>Unblock User</Text>
+                  <Ionicons name="eye-outline" size="large" />
                 </TouchableOpacity>
               </View>
-            </View>
+            </ListItem>
           )}
           keyExtractor={({ userId }) => userId}
         />
