@@ -2,12 +2,20 @@
 /* eslint-disable react/prop-types */
 import React, { Component } from 'react';
 import {
-  Text, TextInput, View, Button, StyleSheet,
+  Text, TextInput, View, StyleSheet,
 } from 'react-native';
 import * as EmailValidator from 'email-validator';
+import { TouchableOpacity } from 'react-native-web';
 
 class Register extends Component {
   styles = StyleSheet.create({
+    container: {
+      display: 'flex',
+      flex: 1,
+      flexDirection: 'column',
+      justifyContent: 'center',
+      padding: 25,
+    },
     error: {
       color: 'red',
     },
@@ -21,15 +29,22 @@ class Register extends Component {
     },
     formFields: {
       backgroundColor: '#dadfeb',
-      placeholderTextColor: '#8186a3',
+      margin: 5,
+      padding: 10,
+      borderRadius: '20px',
     },
-
-    formContainer: {
-      display: 'flex',
-      justifyContent: 'space-between',
-      flexDirection: 'column',
+    button: {
+      borderRadius: 20,
+      padding: 10,
+      elevation: 2,
+      margin: 5,
+      backgroundColor: '#2196F3',
     },
-
+    buttonText: {
+      textAlign: 'center',
+      color: 'white',
+      fontWeight: 'bold',
+    },
   });
 
   constructor(props) {
@@ -109,6 +124,7 @@ class Register extends Component {
     }
   };
 
+  // post data
   registerUser = () => {
     const data = {
       first_name: this.state.firstName,
@@ -124,21 +140,28 @@ class Register extends Component {
       body: JSON.stringify(data),
     })
       .then((response) => {
+        if (response.status === 201) {
+          return;
+        }
         if (response.status === 400) {
-          this.setState({ error: 'Bad Request! Please check the form' });
+          const err = 'Something Went Wrong! Please check your fields!';
+          throw err;
         } else {
-          this.setState({ error: 'New user Added!' });
-          this.props.navigation.navigate('Login');
+          const err = 'Server Error! Please try again later!';
+          throw err;
         }
       })
-      .catch((error) => {
-        console.log(error);
+      .then(() => {
+        this.setState({ error: 'New user Added!' });
+      })
+      .catch((err) => {
+        this.setState({ error: err });
       });
   };
 
   render() {
     return (
-      <View>
+      <View style={this.styles.container}>
         <Text style={this.styles.title}>Register</Text>
         <br />
         <View style={this.styles.formContainer}>
@@ -152,9 +175,16 @@ class Register extends Component {
           <Text style={this.styles.error}>{this.state.confirmPasswordError}</Text>
         </View>
         <br />
-        <Button title="Register" onPress={this.register} />
+        <TouchableOpacity style={this.styles.button} onPress={this.register}>
+          <Text style={this.styles.buttonText}>Register</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={this.styles.button}
+          onPress={() => this.props.navigation.goBack(null)}
+        >
+          <Text style={this.styles.buttonText}>Back</Text>
+        </TouchableOpacity>
         <Text style={this.styles.error}>{this.state.error}</Text>
-        <Button title="Back" onPress={() => this.props.navigation.goBack(null)} />
       </View>
     );
   }
